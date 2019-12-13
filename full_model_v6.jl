@@ -3,7 +3,7 @@
 
 #This code encorporates the Delwiche model and the Farquhar model
 #Cost function : A/E
-#Solution period: 12 hrs with values input at every hour
+#Solution period: 1 hrs with values input at every hour
 
 using Ipopt, JuMP
 m = Model(with_optimizer(Ipopt.Optimizer))
@@ -18,7 +18,6 @@ A5=2.8*0.001; # mm^2
 Vg0=4.2*0.000001; # mm^3
 Vs0=4.2*0.00001; # mm^3
 Vm0=1*0.0001; # mm^3
-
 ##############################
 L=1*0.00000000001; #mm/Ps.s
 l=100; # mm
@@ -79,10 +78,10 @@ f_Ko25=300; # milimole/mole
 f_Coa=210; # milimole/mole
 
 f_cp = 36.9+1.18*(T-25)+0.036*(T-25)^2; #micormole/mole
-f_a1 = Vcmax25*(exp(0.088*(T-25))/(1+exp(0.29*(T-41)))); # micromole/m^2.s
-f_Kc = Kc25*exp(0.074*(T-25)); #micormole/mole
-f_Ko = Ko25*exp(0.015*(T-25)); #micormole/mole
-f_a2 = Kc*(1+Coa/Ko); #micormole/mole
+f_a1 = f_Vcmax25*(exp(0.088*(T-25))/(1+exp(0.29*(T-41)))); # micromole/m^2.s
+f_Kc = f_Kc25*exp(0.074*(T-25)); #micormole/mole
+f_Ko = f_Ko25*exp(0.015*(T-25)); #micormole/mole
+f_a2 = f_Kc*(1+f_Coa/f_Ko); #micormole/mole
 
 f_ca = 410; #ppm
 
@@ -147,7 +146,7 @@ expr2=0;
 @variable(m, bs)
 #@variable(m,b0)
 ##############################
-@variable(m, A)
+@variable(m, A>=0)
 @variable(m, p1)
 @variable(m, p2)
 @variable(m, fc>=0)
@@ -155,7 +154,7 @@ expr2=0;
 ################################################################################
 #@NLconstraint(m, E==(cm-cta)*gs)
 @NLconstraint(m, E == Evap/Mw) # mol/m^2.s
-@NLconstraint(m, Evap == (Q_rad + (rho*Cp*ra)*VPD)/(hfg*(delta_PM + gamma*(1+ga/gs)))) # g/m^s.s Pennman Montheith Equation for Evapotranspiration g/m^s.s
+@NLconstraint(m, Evap == (Q_rad + (rho*Cp*ga)*VPD)/(hfg*(delta_PM + gamma*(1+ga/gs)))) # g/m^s.s Pennman Montheith Equation for Evapotranspiration g/m^s.s
 @NLconstraint(m, gs == g*10^-3) # g is in mm/s, 10^-3 m/mm gs in m/s
 @NLconstraint(m, g == 1/((1/D)*(delta+(d+r)/(n*Ast)+qsi*(l/v)^0.5)))
 @NLconstraint(m, expr1== b0+bg*Pg+bs*Ps)
